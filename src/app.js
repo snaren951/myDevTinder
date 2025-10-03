@@ -1,3 +1,4 @@
+const {auth}=require("./authmiddleware/auth.js");
 const express=require("express");
 const app=express();
 /*
@@ -55,6 +56,19 @@ function(req,res,next){
     //next();
 
 });
+
+app.use("/admin",auth);
+
+app.get("/admin/getAllUsers",function(req,res){
+
+    res.send("All user data is sent");
+    //random data
+});
+
+app.get("/admin/deleteUser",function(req,res){
+    res.send("User is deleted");
+});
+
 
 
 
