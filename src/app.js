@@ -1,7 +1,8 @@
 
 const dbConnect= require("./config/database.js");
 const express = require("express");
-const User=require("./models/users.js")
+const User=require("./models/users.js");
+const { error } = require("console");
 const app = express();
 dbConnect().then(()=>
     {
@@ -14,18 +15,13 @@ dbConnect().then(()=>
 
         console.error("Error in establishing connection with DB");
     });
+    app.use(express.json());
     app.post("/signup", async function(req,res){
-        //console.log("This is a sign up API handler");
-        //res.send("Response from Sign uP API handler");
-        const userObj={
-            firstName: "Serena",
-            lastName: "Williams",
-            gender: "Female",
-            age: 50
-        };
-        const user = new User(userObj);
+        
+        const user = new User(req.body);
         try {
             await user.save();
+            
             res.send("User Created successfully");
         }
         catch (error){
@@ -34,7 +30,52 @@ dbConnect().then(()=>
             res.status(400).send("User creation failed, bad data");
         }
         
-    })
+    });
+    app.get("/user",async function(req,res){
+
+        const userlastName=req.body.lastName;
+        try{
+            const user=await User.findOne();
+        if(user.length<1){
+            //throw new error;
+            res.status(400).send("user not found");
+        }
+        else{
+             res.send(user);
+
+        }
+
+        }
+        catch(error){
+            res.status(400).send("Something went wrong")
+        }
+        
+       
+
+    });
+
+    app.get("/feed",async function(req,res){
+
+        const userlastName=req.body.lastName;
+        try{
+            const user=await User.find();
+        if(user.length<1){
+            //throw new error;
+            res.status(400).send("No users found");
+        }
+        else{
+             res.send(user);
+
+        }
+
+        }
+        catch(error){
+            res.status(400).send("Something went wrong")
+        }
+        
+       
+
+    });
 
 
 
