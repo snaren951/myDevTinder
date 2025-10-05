@@ -1,10 +1,58 @@
 
+const dbConnect= require("./config/database.js");
+const express = require("express");
+const User=require("./models/users.js")
+const app = express();
+dbConnect().then(()=>
+    {
+        console.log("Database Server Connection established successfully");
+        app.listen(7777, function(){
+    console.log("Server is listening on port 7777 successfully");
+});
+    }).
+    catch(e=>{
 
+        console.error("Error in establishing connection with DB");
+    });
+    app.post("/signup", async function(req,res){
+        //console.log("This is a sign up API handler");
+        //res.send("Response from Sign uP API handler");
+        const userObj={
+            firstName: "Serena",
+            lastName: "Williams",
+            gender: "Female",
+            age: 50
+        };
+        const user = new User(userObj);
+        try {
+            await user.save();
+            res.send("User Created successfully");
+        }
+        catch (error){
+
+            console.log ("Error in creating the user");
+            res.status(400).send("User creation failed, bad data");
+        }
+        
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 const {auth}=require("./authmiddleware/auth.js");
 const express=require("express");
 const app=express();
 
-/*
 app.use("/home",function(req,res){
 res.send("This is a response from home page, conected wow, yahoo!!!");
 
@@ -18,7 +66,7 @@ app.use("/test",function(req,res){
 res.send("This is a response from test page, conected wow, yahoo!!!");
 
 });
-*/
+
 
 app.get("/abcd",function(req,res){
     res.send({firstName:"ABC", lastName:"DEF"});
@@ -80,7 +128,7 @@ app.listen(7777, function(){
     console.log("Server is listening on port 7777 successfully");
 });
 
-/*
+
 console.log("I am the first line");
 
 setTimeout(()=>{console.log("I am the set TimeOut")},0);
@@ -90,3 +138,4 @@ setTimeout(()=>{console.log("I am the second set TimeOut")},0);
 setImmediate(()=>{console.log("I am the second set Immediate")});
 console.log("I am the third line");
 */
+
