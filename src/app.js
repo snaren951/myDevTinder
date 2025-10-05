@@ -1,6 +1,9 @@
+
+
 const {auth}=require("./authmiddleware/auth.js");
 const express=require("express");
 const app=express();
+
 /*
 app.use("/home",function(req,res){
 res.send("This is a response from home page, conected wow, yahoo!!!");
@@ -16,6 +19,7 @@ res.send("This is a response from test page, conected wow, yahoo!!!");
 
 });
 */
+
 app.get("/abcd",function(req,res){
     res.send({firstName:"ABC", lastName:"DEF"});
     console.log(req.query);
@@ -75,3 +79,14 @@ app.get("/admin/deleteUser",function(req,res){
 app.listen(7777, function(){
     console.log("Server is listening on port 7777 successfully");
 });
+
+/*
+console.log("I am the first line");
+
+setTimeout(()=>{console.log("I am the set TimeOut")},0);
+setImmediate(()=>{console.log("I am the set Immediate")});
+console.log("I am the second line");
+setTimeout(()=>{console.log("I am the second set TimeOut")},0);
+setImmediate(()=>{console.log("I am the second set Immediate")});
+console.log("I am the third line");
+*/
