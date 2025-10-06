@@ -2,7 +2,10 @@
 const dbConnect= require("./config/database.js");
 const express = require("express");
 const User=require("./models/users.js");
+const {validateFields}=require("./utils/validations.js");
 const { error } = require("console");
+const bcrypt=require("bcrypt");
+const validator=require("validator");
 const app = express();
 dbConnect().then(()=>
     {
@@ -17,31 +20,85 @@ dbConnect().then(()=>
     });
     app.use(express.json());
     app.post("/signup", async function(req,res){
-        
-        const user = new User(req.body);
+       
        
 
         try {
+            //validation of request body elements
+          
+            validateFields(req);
+            
+            const {firstName,lastName,email,password}=req.body;
 
-             if (req.body.skills.length>10){
-            throw new Error("Skills can't be more than 10");
+            //Hash the password
+            const passwordHash= await bcrypt.hash(password,10)
+            console.log(passwordHash);
 
-        }
-        else {
+            const user = new User({
+                firstName,
+                lastName,
+                email,
+                password: passwordHash
+            });
             await user.save();
             
             res.send("User Created successfully");
 
         }
             
-        }
+        
         catch (error){
 
-            console.log ("Error in creating the user: " +error.message);
-            res.status(400).send("User creation failed, bad data:  " +error.message);
+            //console.log ("ERROR: " +error.message);
+            res.status(400).send("ERROR:  " +error.message);
         }
         
     });
+
+    app.post("/login",async function(req,res){
+
+        try{
+
+        const {email,password}=req.body;
+        if(!validator.isEmail(email)){
+
+            throw new Error("Invalid email address");
+        }
+        else{
+
+            const loginUser=await User.findOne({email:email});
+            console.log("Login User is \n");
+            console.log(loginUser);
+            if(!loginUser){
+               // console.log("Enterred the login user block");
+                throw new Error("Invalid Credentials");
+            }
+            else {
+                //console.log("Hashed Password is : " + loginUser.password);
+
+                const passwordMatched = await bcrypt.compare(password,loginUser.password);
+                //console.log("Password Match Result is : " +passwordMatched);
+                if (!passwordMatched){
+                    throw new Error("Invalid Credentials");
+
+
+                }
+                else {
+                    res.send("User Login Successfull");
+                }
+            }
+        }
+
+
+        }
+        catch (error){
+            res.status(400).send("ERROR Message: "+error.message);
+        }
+        
+
+
+    });
+    
     app.get("/user",async function(req,res){
 
         const userId=req.body.userId;
