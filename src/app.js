@@ -70,14 +70,14 @@ dbConnect().then(()=>
             console.log("Login User is \n");
             console.log(loginUser);
             if(!loginUser){
-               // console.log("Enterred the login user block");
+               
                 throw new Error("Invalid Credentials");
             }
             else {
-                //console.log("Hashed Password is : " + loginUser.password);
+                
 
                 const passwordMatched = await bcrypt.compare(password,loginUser.password);
-                //console.log("Password Match Result is : " +passwordMatched);
+               
                 if (!passwordMatched){
                     throw new Error("Invalid Credentials");
 
