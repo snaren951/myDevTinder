@@ -19,23 +19,34 @@ dbConnect().then(()=>
     app.post("/signup", async function(req,res){
         
         const user = new User(req.body);
+       
+
         try {
+
+             if (req.body.skills.length>10){
+            throw new Error("Skills can't be more than 10");
+
+        }
+        else {
             await user.save();
             
             res.send("User Created successfully");
+
+        }
+            
         }
         catch (error){
 
-            console.log ("Error in creating the user");
-            res.status(400).send("User creation failed, bad data");
+            console.log ("Error in creating the user: " +error.message);
+            res.status(400).send("User creation failed, bad data:  " +error.message);
         }
         
     });
     app.get("/user",async function(req,res){
 
-        const userlastName=req.body.lastName;
+        const userId=req.body.userId;
         try{
-            const user=await User.findOne();
+            const user=await User.findById(userId);
         if(user.length<1){
             //throw new error;
             res.status(400).send("user not found");
@@ -74,6 +85,61 @@ dbConnect().then(()=>
         }
         
        
+
+    });
+
+    app.delete("/delete",async function(req,res){
+
+        const userId = req.body.userId;
+        //console.log(userId);
+        try{
+            const opStatus = await User.findByIdAndDelete(userId);
+            if (!opStatus){
+
+                res.status(400).send("Bad Data  User Not found");
+            }
+            else {
+                 res.send("User deleted successfully");
+
+
+            }
+           
+    
+        }
+        catch(error){
+            res.status(400).send("DB operation failed, something went wrong");
+        }
+
+
+    });
+    app.patch("/patch/:emailId", async function(req, res){
+        const data = req.body;
+        const emailId=req.params.emailId;
+        try{
+            const allowedFields=["skills","about","age"];
+           const isUpdateAllowed=Object.keys(data).every(key=>allowedFields.includes(key));
+           //console.log("the value is" +isUpdateAllowed);
+           if(req.body.skills.length>10){
+            throw new Error("Skills length has exceeded the max lenght");
+           }
+
+                if(!isUpdateAllowed){
+                    throw new Error("Request includes the fields that can't be modified");
+                }
+                
+                else {
+                    const updateduser= await User.findOneAndUpdate({email:emailId},data, {runValidator:true, returnDocument:'after'});
+        res.send("User Updated successfully");
+        console.log(updateduser);
+                }
+
+        }
+        catch(error){
+
+            res.status(400).send("Seomthing went wrong in updating the user: " + error.message);
+        }
+        
+
 
     });
 
