@@ -6,6 +6,8 @@ const {validateFields}=require("./utils/validations.js");
 const { error } = require("console");
 const bcrypt=require("bcrypt");
 const validator=require("validator");
+const cookieParser = require("cookie-parser");
+const jwt=require("jsonwebtoken");
 const app = express();
 dbConnect().then(()=>
     {
@@ -18,6 +20,7 @@ dbConnect().then(()=>
 
         console.error("Error in establishing connection with DB");
     });
+    app.use(cookieParser());
     app.use(express.json());
     app.post("/signup", async function(req,res){
        
@@ -67,8 +70,8 @@ dbConnect().then(()=>
         else{
 
             const loginUser=await User.findOne({email:email});
-            console.log("Login User is \n");
-            console.log(loginUser);
+            //console.log("Login User is \n");
+            //console.log(loginUser);
             if(!loginUser){
                
                 throw new Error("Invalid Credentials");
@@ -84,6 +87,8 @@ dbConnect().then(()=>
 
                 }
                 else {
+                    const token = jwt.sign({_id: loginUser._id},"Test@12345");
+                    res.cookie("token",token);
                     res.send("User Login Successfull");
                 }
             }
@@ -98,7 +103,33 @@ dbConnect().then(()=>
 
 
     });
-    
+    app.get("/profile",async function(req,res){
+        try {
+        const cookies = req.cookies;
+        //console.log(cookies);
+        const {token}=cookies;
+        //console.log(token);
+        const decodedMessage = jwt.verify(token, "Test@12345");
+        //console.log("Decoded Message is : \n")
+        //console.log(decodedMessage);
+        const {_id}=decodedMessage;
+       // console.log(_id);
+       const user=await User.findById(_id);
+
+
+       // console.log(token._id);
+
+
+        res.send(user);
+
+        }
+        catch(error){
+            console.log("Error: "+error.message);
+        }
+      
+
+    });
+
     app.get("/user",async function(req,res){
 
         const userId=req.body.userId;
