@@ -9,6 +9,7 @@ const validator=require("validator");
 const cookieParser = require("cookie-parser");
 const jwt=require("jsonwebtoken");
 const app = express();
+const {userAuth}=require("./authmiddleware/auth.js");
 dbConnect().then(()=>
     {
         console.log("Database Server Connection established successfully");
@@ -79,7 +80,7 @@ dbConnect().then(()=>
             else {
                 
 
-                const passwordMatched = await bcrypt.compare(password,loginUser.password);
+                const passwordMatched = await loginUser.validatePassword(password);
                
                 if (!passwordMatched){
                     throw new Error("Invalid Credentials");
@@ -87,7 +88,7 @@ dbConnect().then(()=>
 
                 }
                 else {
-                    const token = jwt.sign({_id: loginUser._id},"Test@12345");
+                    const token = await loginUser.getJWT();
                     res.cookie("token",token);
                     res.send("User Login Successfull");
                 }
@@ -103,21 +104,10 @@ dbConnect().then(()=>
 
 
     });
-    app.get("/profile",async function(req,res){
+    app.get("/profile",userAuth,async function(req,res){
         try {
-        const cookies = req.cookies;
-        //console.log(cookies);
-        const {token}=cookies;
-        //console.log(token);
-        const decodedMessage = jwt.verify(token, "Test@12345");
-        //console.log("Decoded Message is : \n")
-        //console.log(decodedMessage);
-        const {_id}=decodedMessage;
-       // console.log(_id);
-       const user=await User.findById(_id);
-
-
-       // console.log(token._id);
+        
+       const user = req.user;
 
 
         res.send(user);
@@ -127,6 +117,12 @@ dbConnect().then(()=>
             console.log("Error: "+error.message);
         }
       
+
+    });
+
+    app.post("/sendConnectionRequest",userAuth,function(req,res){
+
+        res.send(req.user.firstName+" has sent the Connection Request");
 
     });
 
