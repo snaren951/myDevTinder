@@ -10,6 +10,10 @@ const cookieParser = require("cookie-parser");
 const jwt=require("jsonwebtoken");
 const app = express();
 const {userAuth}=require("./authmiddleware/auth.js");
+const authRouter = require ("./routes/auth.js");
+const profileRouter=require("./routes/profile.js");
+const requestRouter=require("./routes/request.js");
+
 dbConnect().then(()=>
     {
         console.log("Database Server Connection established successfully");
@@ -23,108 +27,15 @@ dbConnect().then(()=>
     });
     app.use(cookieParser());
     app.use(express.json());
-    app.post("/signup", async function(req,res){
-       
-       
+    app.use("/", authRouter);
+    app.use("/", profileRouter);
+    app.use("/", requestRouter);
+    
 
-        try {
-            //validation of request body elements
-          
-            validateFields(req);
-            
-            const {firstName,lastName,email,password}=req.body;
+    
 
-            //Hash the password
-            const passwordHash= await bcrypt.hash(password,10)
-            console.log(passwordHash);
-
-            const user = new User({
-                firstName,
-                lastName,
-                email,
-                password: passwordHash
-            });
-            await user.save();
-            
-            res.send("User Created successfully");
-
-        }
-            
-        
-        catch (error){
-
-            //console.log ("ERROR: " +error.message);
-            res.status(400).send("ERROR:  " +error.message);
-        }
-        
-    });
-
-    app.post("/login",async function(req,res){
-
-        try{
-
-        const {email,password}=req.body;
-        if(!validator.isEmail(email)){
-
-            throw new Error("Invalid email address");
-        }
-        else{
-
-            const loginUser=await User.findOne({email:email});
-            //console.log("Login User is \n");
-            //console.log(loginUser);
-            if(!loginUser){
-               
-                throw new Error("Invalid Credentials");
-            }
-            else {
-                
-
-                const passwordMatched = await loginUser.validatePassword(password);
-               
-                if (!passwordMatched){
-                    throw new Error("Invalid Credentials");
-
-
-                }
-                else {
-                    const token = await loginUser.getJWT();
-                    res.cookie("token",token);
-                    res.send("User Login Successfull");
-                }
-            }
-        }
-
-
-        }
-        catch (error){
-            res.status(400).send("ERROR Message: "+error.message);
-        }
-        
-
-
-    });
-    app.get("/profile",userAuth,async function(req,res){
-        try {
-        
-       const user = req.user;
-
-
-        res.send(user);
-
-        }
-        catch(error){
-            console.log("Error: "+error.message);
-        }
-      
-
-    });
-
-    app.post("/sendConnectionRequest",userAuth,function(req,res){
-
-        res.send(req.user.firstName+" has sent the Connection Request");
-
-    });
+    
+   
 
     app.get("/user",async function(req,res){
 
