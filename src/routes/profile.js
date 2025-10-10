@@ -3,6 +3,8 @@ const {userAuth}=require("../authmiddleware/auth.js");
 const express=require("express");
 
 const profileRouter= express.Router();
+const bcrypt=require("bcrypt");
+const validator = require ("validator");
 
 
 profileRouter.get("/profile/view",userAuth,async function(req,res){
@@ -53,7 +55,65 @@ profileRouter.post("/profile/edit",userAuth,async function(req,res){
     }
 
 );
+
+profileRouter.post("/profile/changePassword", userAuth, async function(req,res){
+
+    try{
+
+        const currentPassword = req.body.currentPassword;
+       
+        const newPassword=req.body.newPassword;
+       
+        if (!currentPassword ||!newPassword){
+            res.status(401).send("Please enter the current password & the new password to proceed with password change");
+        }
+        else {
+
+        const loggedInUser=req.user;
+      
+       const isCurrentPasswordCorrect = await bcrypt.compare(currentPassword,loggedInUser.password);
+     
+       if (!isCurrentPasswordCorrect){
+        res.status(401).send("Current password is incorrect");
+       }
+       else {
     
+      
+       const isNewPasswordStrong = validator.isStrongPassword(newPassword);
+
+       if (!isNewPasswordStrong){
+
+        res.status(400).send("New Password didn't meet the requirements, enter a strong password");
+      
+       }
+       else {
+
+       const newPasswordHash= await bcrypt.hash(newPassword,10);
+
+       loggedInUser.password=newPasswordHash;
+
+
+       loggedInUser.save();
+
+
+       res.send("Password updated successfully");
+
+       }
+
+       }
+        }
+
+
+    }
+    catch(error){
+
+        res.send("Error is : "+error.message);
+    }
+       
+
+});
+
+
 
 
 
