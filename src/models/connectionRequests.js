@@ -3,18 +3,14 @@ const connectionRequestSchema= mongoose.Schema({
 
     fromId:{
         type:mongoose.SchemaTypes.ObjectId,
+        ref:"User",
         required:true
         
 
     },
     toId:{
         type:mongoose.SchemaTypes.ObjectId,
-        // validate(value) {
-        //     if (!mongoose.Types.ObjectId.isValid(value)){
-        //         throw new Error ("ID is not a valid entry");
-        //     }
-
-        // },
+        ref:"User",
         required:true
         
     },

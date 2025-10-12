@@ -3,11 +3,11 @@ const requestRouter= express.Router();
 const {userAuth}=require("../authmiddleware/auth.js");
 const ConnectionRequest = require ("../models/connectionRequests.js");
 const User=require("../models/users.js");
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, ConnectionStates } = require("mongoose");
 
 
 
- requestRouter.post("/sendConnectionRequest/:status/:toId",userAuth,async function(req,res){
+requestRouter.post("/sendConnectionRequest/:status/:toId",userAuth,async function(req,res){
 
     try {
 
@@ -64,6 +64,106 @@ const { default: mongoose } = require("mongoose");
 
     });
 
+
+
+
+requestRouter.post("/requests/review/:status/:requestId",userAuth,async function(req,res){
+
+        try {
+
+            const loggedInUserId = req.user._id;
+
+            const allowedStatus = ['accepted','rejected'];
+
+            const requestStatus = req.params.status;
+            const requestId = req.params.requestId;
+
+            if (!allowedStatus.includes(requestStatus)){
+
+                return res.status(400).send("Invaid request type");
+            }
+
+          
+
+            const request = await ConnectionRequest.findOne({_id: requestId, toId:loggedInUserId, status:'liked' });
+            if (!request){
+                return res.status(401).send("No Requests exists / Request ID is invalid");  
+            }
+
+            request.status = requestStatus;
+            const data = await request.save();
+            res.send(data);
+        }
+
+        catch(err){
+
+            res.status(401).send("ERROR: "+err.message);
+        }
+
+
+     
+
+    });
+
+requestRouter.get("/requests/received", userAuth, async function(req,res){
+
+    try {
+
+         const loggedInUserId = req.user._id
+
+    const requestsReceived = await ConnectionRequest.find({toId: loggedInUserId, status: "liked"}).populate("fromId","firstName lastName");
+
+    if(!requestsReceived){
+
+        return res.send ("No Requests Found");
+    }
+    const data = requestsReceived.map(function(elem){
+        return elem.fromId;
+    })
+
+    res.send(data);
+
+
+    }
+
+    catch (error) {
+        res.status(401).send("Invalid Request");
+    }
+   
+
+    });
+
+requestRouter.get("/connections",userAuth,async function (req,res){
+
+    try{
+   const loggedInUserId = req.user._id;
+   const connections= await ConnectionRequest.find({
+    status:"accepted",
+    $or:[{fromId:loggedInUserId},{toId:loggedInUserId}]
+   }).populate("fromId", "firstName lastName").populate("toId","firstName lastName");
+
+   const data= connections.map(function(elem) {
+    if (elem.fromId._id.toString() === loggedInUserId.toString()){
+
+        return elem.toId;
+    }
+    return elem.fromId;
+
+
+   })
+
+   res.send(data);
+
+    }
+
+    catch (err){
+        res.status(401).send("ERROR: "+err.message);
+    }
+
+ 
+
+
+});
 
 
 
