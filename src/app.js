@@ -13,11 +13,12 @@ const {userAuth}=require("./authmiddleware/auth.js");
 const authRouter = require ("./routes/auth.js");
 const profileRouter=require("./routes/profile.js");
 const requestRouter=require("./routes/request.js");
+require("dotenv").config();
 
 dbConnect().then(()=>
     {
         console.log("Database Server Connection established successfully");
-        app.listen(7777, function(){
+        app.listen(process.env.PORT, function(){
     console.log("Server is listening on port 7777 successfully");
 });
     }).

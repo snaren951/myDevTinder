@@ -4,6 +4,7 @@ const {userAuth}=require("../authmiddleware/auth.js");
 const ConnectionRequest = require ("../models/connectionRequests.js");
 const User=require("../models/users.js");
 const { default: mongoose, ConnectionStates } = require("mongoose");
+const authRouter = require("./auth.js");
 
 
 
@@ -166,6 +167,11 @@ requestRouter.get("/connections",userAuth,async function (req,res){
 });
 
 
+requestRouter.get("/feed",authRouter, function(req, res){
+
+
+})
+;
 
 
 module.exports = requestRouter;
